@@ -9,8 +9,8 @@ const Header = () => {
                     <ul className="flex justify-center space-x-6">
                         <li><a href="/" className="hover:text-blue-200 transition duration-300">Home</a></li>
                         <li><a href="/bills-entry" className="hover:text-blue-200 transition duration-300">Bills Entry</a></li>
-                        <li><a href="/about" className="hover:text-blue-200 transition duration-300">View Bills</a></li>
-                        <li><a href="/contact" className="hover:text-blue-200 transition duration-300">Search by Name</a></li>
+                        <li><a href="/view-bills" className="hover:text-blue-200 transition duration-300">View Bills</a></li>
+                        <li><a href="/search-bills" className="hover:text-blue-200 transition duration-300">Search by Name</a></li>
                     </ul>
                 </nav>
             </div>
