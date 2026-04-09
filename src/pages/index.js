@@ -4,11 +4,11 @@ const IndexPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <main className="container mx-auto px-4 py-8">
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl font-extrabold text-gray-800 mb-4">Welcome to Godown Bills</h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">Manage your bills efficiently with our mobile-responsive system. Store data securely in MongoDB and access it anytime.</p>
+                <div className="text-center mb-8 sm:mb-12">
+                    <h1 className="text-3xl sm:text-5xl font-extrabold text-gray-800 mb-3">Welcome to Godown Bills</h1>
+                    <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">Manage your bills efficiently with our mobile-responsive system. Store data securely in MongoDB and access it anytime.</p>
                 </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
                     <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
                         <h2 className="text-2xl font-bold text-blue-600 mb-4">Bills Entry</h2>
                         <p className="text-gray-700 mb-4">Easily enter new bills with material details, quantities, and rates.</p>

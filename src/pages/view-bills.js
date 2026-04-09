@@ -267,10 +267,10 @@ const ViewBills = () => {
             <div className="max-w-4xl mx-auto">
 
                 {/* Header */}
-                <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-bold text-gray-800">All Bill Records</h1>
+                <div className="mb-4">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">All Bill Records</h1>
                     {!loading && filteredBills.length > 0 && (
-                        <span className="text-sm text-gray-500">
+                        <span className="text-xs sm:text-sm text-gray-500 block mt-0.5">
                             Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredBills.length)} of {filteredBills.length}{searchQuery ? ` (filtered from ${allBills.length})` : ''} bills
                         </span>
                     )}
@@ -321,31 +321,33 @@ const ViewBills = () => {
                                 <div key={bill._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
                                     {/* Bill Header */}
-                                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-lg font-bold">{bill.partyName}</h2>
-                                            {bill.billNumber && (
-                                                <p className="text-sm text-blue-100">Bill No: {bill.billNumber}</p>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right">
-                                                <p className="text-2xl font-bold">₹{bill.totalAmount}</p>
-                                                <span className={`text-xs px-2 py-1 rounded-full font-semibold ${bill.status === 'Pending' ? 'bg-yellow-400 text-yellow-900' : bill.status === 'Cancelled' ? 'bg-red-400 text-red-900' : 'bg-green-400 text-green-900'}`}>
-                                                    {bill.status || 'Pending'}
-                                                </span>
+                                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4 text-white">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <h2 className="text-base sm:text-lg font-bold truncate">{bill.partyName}</h2>
+                                                {bill.billNumber && (
+                                                    <p className="text-xs sm:text-sm text-blue-100">Bill No: {bill.billNumber}</p>
+                                                )}
                                             </div>
-                                            <button
-                                                onClick={() => openEdit(bill)}
-                                                className="bg-white text-blue-700 font-semibold text-sm px-4 py-2 rounded-lg hover:bg-blue-50 transition duration-200 shadow"
-                                            >
-                                                Edit
-                                            </button>
+                                            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                                                <div className="text-right">
+                                                    <p className="text-lg sm:text-2xl font-bold">₹{bill.totalAmount}</p>
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${bill.status === 'Pending' ? 'bg-yellow-400 text-yellow-900' : bill.status === 'Cancelled' ? 'bg-red-400 text-red-900' : 'bg-green-400 text-green-900'}`}>
+                                                        {bill.status || 'Pending'}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={() => openEdit(bill)}
+                                                    className="bg-white text-blue-700 font-semibold text-xs sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg hover:bg-blue-50 transition duration-200 shadow"
+                                                >
+                                                    Edit
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Bill Meta */}
-                                    <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                    <div className="px-3 sm:px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                                         <div>
                                             <span className="text-gray-500 block">Date</span>
                                             <span className="font-medium text-gray-800">
@@ -374,7 +376,7 @@ const ViewBills = () => {
 
                                     {/* Material List */}
                                     {bill.materialList && bill.materialList.length > 0 && (
-                                        <div className="px-6 py-4">
+                                        <div className="px-3 sm:px-6 py-4">
                                             <h3 className="text-sm font-semibold text-gray-600 mb-3">Items</h3>
                                             <div className="overflow-x-auto">
                                                 <table className="w-full text-sm">
@@ -420,14 +422,14 @@ const ViewBills = () => {
                                     )}
 
                                     {/* Total Footer */}
-                                    <div className="px-6 py-4 bg-blue-50 flex flex-wrap justify-between items-start gap-4">
+                                    <div className="px-3 sm:px-6 py-4 bg-blue-50 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                                         <div className="flex flex-col gap-1">
                                             <button
                                                 onClick={() => markAllReturned(bill)}
                                                 disabled={markingBillId === bill._id || bill.materialList.every(i => (i.status || 'not returned') === 'returned')}
                                                 className={`text-sm font-semibold px-4 py-2 rounded-lg transition ${markingBillId === bill._id ? 'bg-blue-400 text-white cursor-wait' : bill.materialList.every(i => (i.status || 'not returned') === 'returned') ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-500 text-white hover:bg-green-600'}`}
                                             >
-                                                {markingBillId === bill._id ? 'Updating...' : bill.materialList.every(i => (i.status || 'not returned') === 'returned') ? '✔ All Returned' : 'All Material Returned'}
+                                                {markingBillId === bill._id ? 'Updating...' : bill.materialList.every(i => (i.status || 'not returned') === 'returned') ? '✔ All Returned' : 'Mark All Returned'}
                                             </button>
                                             {billStatusMsg[bill._id] && (
                                                 <span className={`text-xs font-semibold px-2 py-1 rounded ${billStatusMsg[bill._id].includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -437,7 +439,7 @@ const ViewBills = () => {
                                         </div>
 
                                         {/* Payment Section */}
-                                        <div className="flex flex-col items-end gap-2 min-w-[220px]">
+                                        <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                                             <p className="text-base font-bold text-blue-700">Grand Total: ₹{bill.totalAmount}</p>
 
                                             {/* Paid Amount Input */}

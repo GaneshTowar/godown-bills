@@ -174,23 +174,25 @@ const PartyPortal = () => {
                                 <div key={bill._id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
                                     {/* Bill Header */}
-                                    <div className="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-4 text-white flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-lg font-bold">{bill.partyName}</h2>
-                                            {bill.billNumber && (
-                                                <p className="text-sm text-green-100">Bill No: {bill.billNumber}</p>
-                                            )}
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-2xl font-bold">₹{bill.totalAmount}</p>
-                                            <span className={`text-xs px-2 py-1 rounded-full font-semibold ${bill.status === 'Pending' ? 'bg-yellow-400 text-yellow-900' : bill.status === 'Cancelled' ? 'bg-red-400 text-red-900' : 'bg-green-400 text-green-900'}`}>
-                                                {bill.status || 'Pending'}
-                                            </span>
+                                    <div className="bg-gradient-to-r from-green-600 to-teal-600 px-4 sm:px-6 py-3 sm:py-4 text-white">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <h2 className="text-base sm:text-lg font-bold truncate">{bill.partyName}</h2>
+                                                {bill.billNumber && (
+                                                    <p className="text-xs sm:text-sm text-green-100">Bill No: {bill.billNumber}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-lg sm:text-2xl font-bold">₹{bill.totalAmount}</p>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${bill.status === 'Pending' ? 'bg-yellow-400 text-yellow-900' : bill.status === 'Cancelled' ? 'bg-red-400 text-red-900' : 'bg-green-400 text-green-900'}`}>
+                                                    {bill.status || 'Pending'}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
                                     {/* Bill Meta */}
-                                    <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                    <div className="px-3 sm:px-6 py-3 bg-gray-50 border-b border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                                         <div>
                                             <span className="text-gray-500 block">Date</span>
                                             <span className="font-medium text-gray-800">
@@ -213,7 +215,7 @@ const PartyPortal = () => {
 
                                     {/* Material List */}
                                     {bill.materialList && bill.materialList.length > 0 && (
-                                        <div className="px-6 py-4">
+                                        <div className="px-3 sm:px-6 py-4">
                                             <h3 className="text-sm font-semibold text-gray-600 mb-3">Items</h3>
                                             <div className="overflow-x-auto">
                                                 <table className="w-full text-sm">
@@ -251,7 +253,7 @@ const PartyPortal = () => {
                                     )}
 
                                     {/* Payment Footer */}
-                                    <div className="px-6 py-4 bg-green-50 flex flex-wrap justify-end items-center gap-3">
+                                    <div className="px-3 sm:px-6 py-4 bg-green-50 flex flex-wrap justify-end items-center gap-3">
                                         <p className="text-base font-bold text-green-700">Grand Total: ₹{bill.totalAmount}</p>
                                         {(() => {
                                             const pending = (bill.totalAmount || 0) - (bill.paidAmount || 0);

@@ -123,7 +123,7 @@ const BillsEntry = () => {
                     <h2 className="text-3xl font-bold">Event Rental Bill</h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="mb-4">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Bill Number <span className="text-red-500">*</span></label>
@@ -152,17 +152,34 @@ const BillsEntry = () => {
                     </div>
 
                     <div className="mb-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <label className="text-lg font-semibold text-gray-700">Items List <span className="text-red-500 text-sm font-normal">(at least 1 item with qty required)</span></label>
-                            <button type="button" onClick={addMaterial} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 font-medium">+ Add Item</button>
+                        <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+                            <div>
+                                <label className="text-base sm:text-lg font-semibold text-gray-700">Items List</label>
+                                <span className="block text-xs text-red-500 mt-0.5">At least 1 item with qty required</span>
+                            </div>
+                            <button type="button" onClick={addMaterial} className="bg-green-500 text-white px-3 py-2 text-sm rounded-lg hover:bg-green-600 transition duration-300 font-medium">+ Add Item</button>
                         </div>
 
                         {formData.materialList.map((material, index) => (
-                            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                                <input type="text" name="material" placeholder="Item" value={material.material} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
-                                <input type="number" name="qty" placeholder="Qty" value={material.qty} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
-                                <input type="number" name="rate" placeholder="Rate" value={material.rate} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
-                                <div className="flex items-center text-lg font-semibold text-green-600">₹{material.amount}</div>
+                            <div key={index} className="mb-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <label className="block text-xs text-gray-500 mb-1">Item</label>
+                                        <input type="text" name="material" placeholder="Item name" value={material.material} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onChange={(e) => handleMaterialChange(index, e)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                                        <input type="number" name="qty" placeholder="0" value={material.qty} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onChange={(e) => handleMaterialChange(index, e)} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Rate (₹)</label>
+                                        <input type="number" name="rate" placeholder="0" value={material.rate} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" onChange={(e) => handleMaterialChange(index, e)} />
+                                    </div>
+                                    <div className="flex flex-col justify-end">
+                                        <label className="block text-xs text-gray-500 mb-1">Amount</label>
+                                        <div className="px-3 py-2 text-sm font-semibold text-green-600 bg-green-50 rounded-md border border-green-200">₹{material.amount}</div>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
