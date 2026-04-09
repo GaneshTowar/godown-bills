@@ -13,10 +13,16 @@ export default async function handler(req, res) {
 
             const totalAmount = materialList.reduce((sum, item) => sum + (item.amount || 0), 0);
 
+            const normalizedMaterialList = materialList.map(item => ({
+                ...item,
+                returnDate: item.returnDate || null,
+                amount: Number(item.amount) || 0,
+            }));
+
             const updated = await BillEntryModel.findByIdAndUpdate(
                 id,
-                { billNumber, billDate, partyName, materialList, personName, TakerEmployee, status, totalAmount, paidAmount: paidAmount || 0 },
-                { new: true, runValidators: true }
+                { billNumber, billDate, partyName, materialList: normalizedMaterialList, personName, TakerEmployee, status, totalAmount, paidAmount: paidAmount || 0 },
+                { new: true }
             );
 
             if (!updated) {
