@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const today = new Date().toISOString().split('T')[0];
 
 const BillsEntry = () => {
+    const [partyNames, setPartyNames] = useState([]);
     const [formData, setFormData] = useState({
         billNumber: '',
-        billDate: '',
+        billDate: today,
         partyName: '',
-        materialList: [{ material: '', qty: '', rate: '', amount: 0 , returnDate :'',remark:''  }],
+        materialList: [{ material: '', qty: '', rate: '', amount: 0, returnDate: '', remark: '', status: 'not returned' }],
         personName: '',
         grandTotal: 0,
         TakerEmployee: '',
         status: 'Pending',
-
+        paidAmount: '',
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        fetch('/api/parties')
+            .then(res => res.json())
+            .then(data => setPartyNames((data.data || []).map(p => p.name)))
+            .catch(() => {});
+
+        fetch('/api/bills?latest=true')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    setFormData(prev => ({ ...prev, billNumber: String(data.nextBillNumber) }));
+                }
+            })
+            .catch(() => {});
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -36,15 +55,30 @@ const BillsEntry = () => {
     const addMaterial = () => {
         setFormData({
             ...formData,
-            materialList: [...formData.materialList, { material: '', qty: '', rate: '', amount: 0 }]
+            materialList: [...formData.materialList, { material: '', qty: '', rate: '', amount: 0, returnDate: '', remark: '', status: 'not returned' }]
         });
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setMessage('');
 
+        // Validation
+        if (!formData.billNumber.trim()) {
+            setMessage('❌ Bill Number is required.');
+            return;
+        }
+        if (!formData.partyName.trim()) {
+            setMessage('❌ Party Name is required.');
+            return;
+        }
+        const validItems = formData.materialList.filter(item => item.material.trim() && item.qty !== '' && item.qty > 0);
+        if (validItems.length === 0) {
+            setMessage('❌ At least one item with a name and quantity is required.');
+            return;
+        }
+
+        setLoading(true);
         try {
             const response = await fetch('/api/bills', {
                 method: 'POST',
@@ -59,13 +93,17 @@ const BillsEntry = () => {
             if (result.success) {
                 const grandTotal = formData.materialList.reduce((sum, item) => sum + item.amount, 0);
                 setMessage(`✅ Bill Saved Successfully! Total: ₹${grandTotal}`);
-                // Reset form
+                // Fetch next bill number for the reset form
+                const nextRes = await fetch('/api/bills?latest=true').then(r => r.json()).catch(() => ({}));
                 setFormData({
-                    billNumber: '',
-                    billDate: '',
+                    billNumber: nextRes.success ? String(nextRes.nextBillNumber) : '',
+                    billDate: today,
                     partyName: '',
-                    materialList: [{ material: '', qty: '', rate: '', amount: 0 }],
-                    personName: ''
+                    materialList: [{ material: '', qty: '', rate: '', amount: 0, returnDate: '', remark: '', status: 'not returned' }],
+                    personName: '',
+                    TakerEmployee: '',
+                    status: 'Pending',
+                    paidAmount: '',
                 });
                 setTimeout(() => setMessage(''), 3000);
             } else {
@@ -88,45 +126,90 @@ const BillsEntry = () => {
                 <form onSubmit={handleSubmit} className="p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Bill Number</label>
-                            <input type="text" name="billNumber" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Bill Number <span className="text-red-500">*</span></label>
+                            <input type="number" name="billNumber" min="1" value={formData.billNumber} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" onChange={handleChange} />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
-                            <input type="date" name="billDate" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Bill Date</label>
+                            <input type="date" name="billDate" value={formData.billDate} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
                         </div>
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Party Name</label>
-                        <input type="text" name="partyName" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Party Name <span className="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            name="partyName"
+                            value={formData.partyName}
+                            list="party-suggestions"
+                            autoComplete="off"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                            onChange={handleChange}
+                        />
+                        <datalist id="party-suggestions">
+                            {partyNames.map(name => <option key={name} value={name} />)}
+                        </datalist>
                     </div>
 
                     <div className="mb-6">
                         <div className="flex justify-between items-center mb-4">
-                            <label className="text-lg font-semibold text-gray-700">Items List</label>
+                            <label className="text-lg font-semibold text-gray-700">Items List <span className="text-red-500 text-sm font-normal">(at least 1 item with qty required)</span></label>
                             <button type="button" onClick={addMaterial} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 font-medium">+ Add Item</button>
                         </div>
 
                         {formData.materialList.map((material, index) => (
                             <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                                <input type="text" name="material" placeholder="Item" className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
-                                <input type="number" name="qty" placeholder="Qty" className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
-                                <input type="number" name="rate" placeholder="Rate" className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
+                                <input type="text" name="material" placeholder="Item" value={material.material} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
+                                <input type="number" name="qty" placeholder="Qty" value={material.qty} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
+                                <input type="number" name="rate" placeholder="Rate" value={material.rate} className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onChange={(e) => handleMaterialChange(index, e)} />
                                 <div className="flex items-center text-lg font-semibold text-green-600">₹{material.amount}</div>
                             </div>
                         ))}
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Receiver Name</label>
-                        <input type="text" name="personName" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Material Giver</label>
+                        <input type="text" name="personName" value={formData.personName} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200" onChange={handleChange} />
                     </div>
 
-                    <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg mb-6">
-                        <span className="text-xl font-bold text-gray-700">Total Amount</span>
-                        <span className="text-2xl font-bold text-blue-600">₹{formData.materialList.reduce((sum, item) => sum + item.amount, 0)}</span>
-                    </div>
+                    {(() => {
+                        const total = formData.materialList.reduce((sum, item) => sum + item.amount, 0);
+                        const pending = total - (formData.paidAmount || 0);
+                        return (
+                            <div className="bg-blue-50 p-4 rounded-lg mb-6 space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xl font-bold text-gray-700">Total Amount</span>
+                                    <span className="text-2xl font-bold text-blue-600">₹{total}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-semibold text-gray-600">Paid Amount (₹)</label>
+                                    <input
+                                        type="number"
+                                        name="paidAmount"
+                                        value={formData.paidAmount}
+                                        onChange={handleChange}
+                                        className="w-36 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
+                                </div>
+                                {pending < 0 ? (
+                                    <div className="flex justify-between items-center bg-purple-100 border border-purple-300 px-3 py-2 rounded-lg">
+                                        <span className="text-sm font-semibold text-purple-700">Overpaid</span>
+                                        <span className="text-sm font-bold text-purple-700">₹{Math.abs(pending)} extra</span>
+                                    </div>
+                                ) : pending === 0 ? (
+                                    <div className="flex justify-between items-center bg-green-100 border border-green-300 px-3 py-2 rounded-lg">
+                                        <span className="text-sm font-semibold text-green-700">Fully Paid</span>
+                                        <span className="text-sm font-bold text-green-700">₹0 pending</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-between items-center bg-yellow-100 border border-yellow-300 px-3 py-2 rounded-lg">
+                                        <span className="text-sm font-semibold text-yellow-800">Pending Amount</span>
+                                        <span className="text-sm font-bold text-yellow-800">₹{pending}</span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     {message && (
                         <div className={`p-4 rounded-lg mb-6 text-center font-semibold ${message.includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>

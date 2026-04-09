@@ -1,16 +1,23 @@
-const express = require('express');
+import express from 'express';
+import BillEntry from '../models/BillEntry.js';
+
 const router = express.Router();
-const BillEntry = require('../models/BillEntry');
 
 router.post('/submit-bill', async (req, res) => {
     try {
-        const { customerName, billAmount, billDate, description } = req.body;
+        const { billNumber, billDate, partyName, materialList, personName, TakerEmployee, status } = req.body;
+
+        const totalAmount = materialList.reduce((sum, item) => sum + (item.amount || 0), 0);
 
         const newBill = new BillEntry({
-            customerName,
-            billAmount,
+            billNumber,
             billDate,
-            description
+            partyName,
+            materialList,
+            personName,
+            TakerEmployee,
+            status,
+            totalAmount,
         });
 
         await newBill.save();
@@ -20,4 +27,13 @@ router.post('/submit-bill', async (req, res) => {
     }
 });
 
-module.exports = router;
+router.get('/all-bills', async (req, res) => {
+    try {
+        const bills = await BillEntry.find().sort({ billDate: -1 });
+        res.status(200).json(bills);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve bills.' });
+    }
+});
+
+export default router;
