@@ -47,7 +47,7 @@ export default async function handler(req, res) {
             res.status(200).json({ success: true, data: updated });
         } catch (error) {
             console.error('PUT /api/bills/[id] error:', error);
-            res.status(400).json({ success: false, error: error.message, stack: error.stack });
+            res.status(400).json({ success: false, error: error.message });
         }
     } else {
         res.status(405).json({ success: false, error: 'Method not allowed' });
