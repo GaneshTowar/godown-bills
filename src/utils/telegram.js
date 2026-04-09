@@ -4,7 +4,10 @@ export function sendTelegramNotification(message) {
     const token = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
     const chatId = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
-    if (!token || !chatId) return Promise.resolve();
+    if (!token || !chatId) {
+        console.error('[telegram] missing env vars', { hasToken: !!token, hasChatId: !!chatId });
+        return Promise.resolve();
+    }
 
     const body = JSON.stringify({
         chat_id: chatId,
@@ -22,11 +25,23 @@ export function sendTelegramNotification(message) {
                 'Content-Length': Buffer.byteLength(body),
             },
         }, (res) => {
-            res.resume();
-            res.on('end', resolve);
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                if (res.statusCode !== 200) {
+                    console.error('[telegram] non-200 response', res.statusCode, data);
+                } else {
+                    console.log('[telegram] message sent ok');
+                }
+                resolve();
+            });
         });
 
-        req.on('error', resolve); // fail silently
+        req.on('error', (err) => {
+            console.error('[telegram] request error', err.message);
+            resolve();
+        });
+
         req.write(body);
         req.end();
     });
