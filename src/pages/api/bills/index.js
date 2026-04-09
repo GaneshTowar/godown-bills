@@ -1,5 +1,6 @@
 import { connectDB } from '../../../utils/db';
 import BillEntryModel from '../../../../models/BillEntry';
+import { sendTelegramNotification } from '../../../utils/telegram';
 
 export default async function handler(req, res) {
     await connectDB();
@@ -27,6 +28,21 @@ export default async function handler(req, res) {
                 paidAmount: paidAmount || 0,
                 createdAt: new Date(),
             });
+
+            const itemLines = normalizedMaterialList
+                .map(i => `  • ${i.material} — Qty: ${i.qty}, Rate: ₹${i.rate}, Amount: ₹${i.amount}`)
+                .join('\n');
+            await sendTelegramNotification(
+                `🧾 <b>New Bill Created</b>\n\n` +
+                `Bill No: <b>#${billNumber}</b>\n` +
+                `Party: <b>${partyName}</b>\n` +
+                `Date: ${billDate ? new Date(billDate).toLocaleDateString('en-IN') : '—'}\n` +
+                (personName ? `Material Giver: ${personName}\n` : '') +
+                (TakerEmployee ? `Taker Employee: ${TakerEmployee}\n` : '') +
+                `\n<b>Items:</b>\n${itemLines}\n\n` +
+                `💰 <b>Total: ₹${grandTotal}</b>\n` +
+                `Paid: ₹${paidAmount || 0} | Pending: ₹${grandTotal - (paidAmount || 0)}`
+            );
 
             res.status(201).json({ success: true, data: billEntry });
         } catch (error) {
