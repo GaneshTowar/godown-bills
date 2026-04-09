@@ -106,6 +106,16 @@ const BillsEntry = () => {
                     paidAmount: '',
                 });
                 setTimeout(() => setMessage(''), 3000);
+            } else if (response.status === 409) {
+                // Duplicate bill number — likely another user created one concurrently.
+                // Refresh the next available number so the user can retry immediately.
+                const nextRes = await fetch('/api/bills?latest=true').then(r => r.json()).catch(() => ({}));
+                if (nextRes.success) {
+                    setFormData(prev => ({ ...prev, billNumber: String(nextRes.nextBillNumber) }));
+                    setMessage(`❌ ${result.error} Bill number updated to ${nextRes.nextBillNumber} — please click Save again.`);
+                } else {
+                    setMessage(`❌ Error: ${result.error}`);
+                }
             } else {
                 setMessage(`❌ Error: ${result.error}`);
             }

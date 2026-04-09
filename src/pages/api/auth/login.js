@@ -1,11 +1,7 @@
 import { connectDB } from '../../../utils/db';
 import UserModel from '../../../../models/User';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'godown-bills-secret-key';
-const DEFAULT_USERNAME = 'dattmandap';
-const DEFAULT_PASSWORD = 'dattmandap@123qwe';
+import { signAdminToken } from '../../../utils/auth';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -14,14 +10,22 @@ export default async function handler(req, res) {
 
     await connectDB();
 
-    // Seed default user on first run
-    const userCount = await UserModel.countDocuments();
-    if (userCount === 0) {
-        const hashed = await bcrypt.hash(DEFAULT_PASSWORD, 10);
-        await UserModel.create({ username: DEFAULT_USERNAME, password: hashed });
+    // Optional first-run seed — only happens when env credentials are provided
+    // and no admin user exists yet. No hardcoded secrets in source.
+    const seedUsername = process.env.ADMIN_USERNAME;
+    const seedPassword = process.env.ADMIN_PASSWORD;
+    if (seedUsername && seedPassword) {
+        const userCount = await UserModel.countDocuments();
+        if (userCount === 0) {
+            const hashed = await bcrypt.hash(seedPassword, 10);
+            await UserModel.create({ username: seedUsername, password: hashed });
+        }
     }
 
-    const { username, password } = req.body;
+    const { username, password } = req.body || {};
+    if (!username || !password) {
+        return res.status(400).json({ success: false, error: 'Username and password are required.' });
+    }
 
     const user = await UserModel.findOne({ username });
     if (!user) {
@@ -33,11 +37,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ success: false, error: 'Invalid username or password.' });
     }
 
-    const token = jwt.sign(
-        { userId: user._id.toString(), username: user.username },
-        JWT_SECRET,
-        { expiresIn: '30d' }
-    );
+    const token = signAdminToken({ userId: user._id.toString(), username: user.username });
 
     const cookie = `auth_token=${token}; HttpOnly; Path=/; Max-Age=${30 * 24 * 60 * 60}; SameSite=Lax${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
     res.setHeader('Set-Cookie', cookie);

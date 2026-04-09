@@ -117,7 +117,14 @@ const ViewBills = () => {
         setSaving(true);
         setSaveMessage('');
         try {
-            const billToSave = { ...editingBill, status: computeBillStatus(editingBill.materialList) };
+            // notify=true so the server always sends a Telegram notification for
+            // explicit edit-modal saves. Inline updates omit this flag and only
+            // trigger a notification when they complete the bill.
+            // Preserve an explicit Cancelled selection; otherwise derive from materials.
+            const nextStatus = editingBill.status === 'Cancelled'
+                ? 'Cancelled'
+                : computeBillStatus(editingBill.materialList);
+            const billToSave = { ...editingBill, status: nextStatus, notify: true };
             const response = await fetch(`/api/bills/${editingBill._id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

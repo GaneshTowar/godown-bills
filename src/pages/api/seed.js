@@ -1,5 +1,6 @@
 import { connectDB } from '../../utils/db';
 import BillEntryModel from '../../../models/BillEntry';
+import { requireAdmin } from '../../utils/auth';
 
 const parties = [
     'Sharma Events', 'Patel Decorators', 'Singh Tent House', 'Mehta Caterers',
@@ -67,6 +68,8 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
     }
+
+    if (!requireAdmin(req, res)) return;
 
     await connectDB();
 

@@ -1,21 +1,10 @@
 import { connectDB } from '../../../utils/db';
 import PartyUserModel from '../../../../models/PartyUser';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'godown-bills-secret-key';
+import { requireAdmin } from '../../../utils/auth';
 
 export default async function handler(req, res) {
-    // Only admins can access this endpoint
-    const token = req.cookies.auth_token;
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Admin authentication required.' });
-    }
-    try {
-        jwt.verify(token, JWT_SECRET);
-    } catch {
-        return res.status(401).json({ success: false, error: 'Admin session expired.' });
-    }
+    if (!requireAdmin(req, res)) return;
 
     await connectDB();
 
@@ -25,7 +14,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { username, password } = req.body;
+        const { username, password } = req.body || {};
         if (!username || !password || password.length < 4) {
             return res.status(400).json({ success: false, error: 'Username and a password of at least 4 characters are required.' });
         }

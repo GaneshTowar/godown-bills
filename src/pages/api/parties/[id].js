@@ -1,7 +1,10 @@
 import { connectDB } from '../../../utils/db';
 import PartyModel from '../../../../models/Party';
+import { requireAdmin } from '../../../utils/auth';
 
 export default async function handler(req, res) {
+    if (!requireAdmin(req, res)) return;
+
     await connectDB();
 
     if (req.method === 'DELETE') {

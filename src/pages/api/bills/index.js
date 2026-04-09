@@ -1,8 +1,11 @@
 import { connectDB } from '../../../utils/db';
 import BillEntryModel from '../../../../models/BillEntry';
 import { sendTelegramNotification } from '../../../utils/telegram';
+import { requireAdmin } from '../../../utils/auth';
 
 export default async function handler(req, res) {
+    if (!requireAdmin(req, res)) return;
+
     await connectDB();
 
     if (req.method === 'POST') {
@@ -13,7 +16,7 @@ export default async function handler(req, res) {
 
             const normalizedMaterialList = materialList.map(item => ({
                 ...item,
-                status: 'not returned',
+                status: item.status || 'not returned',
             }));
 
             const billEntry = await BillEntryModel.create({

@@ -1,29 +1,23 @@
 import { connectDB } from '../../utils/db';
 import BillEntryModel from '../../../models/BillEntry';
-import jwt from 'jsonwebtoken';
+import { requireParty } from '../../utils/auth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'godown-bills-secret-key';
+function escapeRegex(str) {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
 
-    const token = req.cookies.party_token;
-    if (!token) {
-        return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-
-    let partyUsername;
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        partyUsername = decoded.partyUsername;
-    } catch {
-        return res.status(401).json({ success: false, error: 'Session expired' });
-    }
+    const decoded = requireParty(req, res);
+    if (!decoded) return;
 
     await connectDB();
 
-    const bills = await BillEntryModel.find({ partyName: partyUsername }).sort({ billNumber: -1 });
+    // Case-insensitive exact match so bills created with different casing still surface
+    const nameRegex = new RegExp(`^${escapeRegex(decoded.partyUsername.trim())}$`, 'i');
+    const bills = await BillEntryModel.find({ partyName: nameRegex }).sort({ billNumber: -1 });
     res.status(200).json({ success: true, data: bills });
 }
