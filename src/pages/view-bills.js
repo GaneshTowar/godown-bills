@@ -18,6 +18,7 @@ const ViewBills = () => {
     const [saveMessage, setSaveMessage] = useState('');
     const [markingBillId, setMarkingBillId] = useState(null);
     const [billStatusMsg, setBillStatusMsg] = useState({});
+    const [savingPaidId, setSavingPaidId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterIncomplete, setFilterIncomplete] = useState(false);
     const [filterUnpaid, setFilterUnpaid] = useState(false);
@@ -452,16 +453,23 @@ const ViewBills = () => {
                                                         const paid = parseFloat(e.target.value) || 0;
                                                         setAllBills(prev => prev.map(b => b._id === bill._id ? { ...b, paidAmount: paid } : b));
                                                     }}
-                                                    onBlur={async (e) => {
-                                                        const paid = parseFloat(e.target.value) || 0;
+                                                    className="w-28 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                                <button
+                                                    disabled={savingPaidId === bill._id}
+                                                    onClick={async () => {
+                                                        setSavingPaidId(bill._id);
                                                         await fetch(`/api/bills/${bill._id}`, {
                                                             method: 'PUT',
                                                             headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({ ...bill, paidAmount: paid }),
+                                                            body: JSON.stringify({ ...bill }),
                                                         });
+                                                        setSavingPaidId(null);
                                                     }}
-                                                    className="w-28 px-2 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                />
+                                                    className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition ${savingPaidId === bill._id ? 'bg-gray-300 text-gray-500 cursor-wait' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                                                >
+                                                    {savingPaidId === bill._id ? 'Saving...' : 'Confirm'}
+                                                </button>
                                             </div>
 
                                             {/* Pending Amount */}
